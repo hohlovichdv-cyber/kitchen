@@ -61,6 +61,20 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:10px;overflow:hidden}
 .bar{height:5px;border-radius:3px;transition:width 0.3s ease}
 .bar.g{background:var(--green)}.bar.a{background:var(--amber)}.bar.r{background:var(--red)}
+
+/* МОДАЛЬНОЕ ОКНО */
+.modal-overlay{position:fixed;inset:0;background:rgba(42,35,32,0.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-width:420px;transform:translateY(20px);transition:transform 0.2s}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;text-align:center}
+.modal-sub{font-size:14px;color:var(--text2);text-align:center;margin-bottom:20px}
+.modal-btn{width:100%;padding:14px;border-radius:var(--radius-sm);border:none;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;text-align:center}
+.modal-btn:active{opacity:0.8}
+.modal-btn.green{background:var(--green-light);color:var(--green)}
+.modal-btn.red{background:#FAE0DC;color:var(--red)}
+.modal-btn.gray{background:var(--surface2);color:var(--text2)}
+
 .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:#F5F0E8;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:700;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(42,35,32,0.25);z-index:999}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -73,7 +87,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
       <h1>🍽 Кухня</h1>
       <div class="date" id="dateLabel"></div>
     </div>
-    <button class="reset-day-btn" onclick="newDay()">Новый день</button>
+    <button class="reset-day-btn" onclick="showNewDayModal()">Новый день</button>
   </div>
 </div>
 
@@ -95,6 +109,23 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 <div class="list-wrap">
   <div class="list-label">Остатки на сегодня</div>
   <div id="dishList"></div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО НОВОГО ДНЯ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title">☀️ Новый день</div>
+    <div class="modal-sub">Что делаем с меню?</div>
+    <button class="modal-btn green" onclick="newDayKeep()">
+      🔄 Оставить меню — сбросить порции
+    </button>
+    <button class="modal-btn red" onclick="newDayClear()">
+      🗑 Очистить всё — начать с нуля
+    </button>
+    <button class="modal-btn gray" onclick="hideModal()">
+      Отмена
+    </button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -135,11 +166,28 @@ function removeDish(i){
   dishes.splice(i,1);save();render();
   showToast(name+' удалено');
 }
-function newDay(){
-  if(!confirm('Начать новый день? Список будет очищен.'))return;
-  dishes=[];save();render();
-  showToast('Новый день ☀️');
+
+// НОВЫЙ ДЕНЬ
+function showNewDayModal(){
+  document.getElementById('modalOverlay').classList.add('show');
 }
+function hideModal(){
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+function closeModal(e){
+  if(e.target===document.getElementById('modalOverlay'))hideModal();
+}
+function newDayKeep(){
+  // Сбрасываем порции до начального количества
+  dishes=dishes.map(d=>({...d,left:d.total}));
+  save();render();hideModal();
+  showToast('Меню сохранено, порции сброшены ☀️');
+}
+function newDayClear(){
+  dishes=[];save();render();hideModal();
+  showToast('Новый день — чистый лист ☀️');
+}
+
 function render(){
   const el=document.getElementById('dishList');
   if(!dishes.length){
