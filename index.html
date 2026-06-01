@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Кухня">
-<title>Кухня</title>
+<meta name="apple-mobile-web-app-title" content="Магия Виктории">
+<title>Магия Виктории</title>
 <style>
 :root {
   --bg:#F5F0E8;--surface:#FFFFFF;--surface2:#F0EBE1;
@@ -84,7 +84,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 <div class="header">
   <div class="header-top">
     <div>
-      <h1>🍽 Кухня</h1>
+      <h1>🍽 Магия Виктории</h1>
       <div class="date" id="dateLabel"></div>
     </div>
     <button class="reset-day-btn" onclick="showNewDayModal()">Новый день</button>
@@ -117,7 +117,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
     <div class="modal-title">☀️ Новый день</div>
     <div class="modal-sub">Что делаем с меню?</div>
     <button class="modal-btn green" onclick="newDayKeep()">
-      🔄 Оставить меню — сбросить порции
+      🔄 Оставить меню и порции как есть
+    </button>
+    <button class="modal-btn red" onclick="newDayReset()">
+      ⬜ Оставить меню — обнулить порции
     </button>
     <button class="modal-btn red" onclick="newDayClear()">
       🗑 Очистить всё — начать с нуля
@@ -178,10 +181,13 @@ function closeModal(e){
   if(e.target===document.getElementById('modalOverlay'))hideModal();
 }
 function newDayKeep(){
-  // Сбрасываем порции до начального количества
-  dishes=dishes.map(d=>({...d,left:d.total}));
   save();render();hideModal();
-  showToast('Меню сохранено, порции сброшены ☀️');
+  showToast('Меню и порции сохранены ☀️');
+}
+function newDayReset(){
+  dishes=dishes.map(d=>({...d,left:0}));
+  save();render();hideModal();
+  showToast('Порции обнулены ☀️');
 }
 function newDayClear(){
   dishes=[];save();render();hideModal();
