@@ -46,23 +46,22 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .dish-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .dish-name{font-size:16px;font-weight:700;color:var(--text);flex:1}
 .dish-del{background:none;border:none;font-size:16px;color:var(--text2);cursor:pointer;padding:2px 4px;line-height:1}
-.dish-middle{display:flex;align-items:center;justify-content:space-between}
+.dish-middle{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .portions-info{display:flex;align-items:baseline;gap:4px}
 .p-left{font-size:36px;font-weight:800;line-height:1}
 .p-sep{font-size:16px;color:var(--text2)}
 .p-total{font-size:16px;font-weight:700;color:var(--text2)}
 .p-word{font-size:12px;font-weight:600;color:var(--text2);margin-left:2px}
 .btns{display:flex;gap:6px}
-.spend-btn{height:44px;border-radius:22px;border:none;cursor:pointer;font-family:inherit;font-size:16px;font-weight:800}
+.spend-btn{height:44px;border-radius:22px;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:800}
 .spend-btn:active{transform:scale(0.92);opacity:0.8}
 .btn-minus1{width:44px;background:var(--accent-light);color:var(--accent)}
-.btn-minus2{width:52px;background:var(--accent-light);color:var(--accent);font-size:14px}
-.btn-plus{width:44px;background:var(--green-light);color:var(--green)}
-.bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:10px;overflow:hidden}
+.btn-minus2{width:52px;background:var(--accent-light);color:var(--accent);font-size:13px}
+.btn-plus1{width:44px;background:var(--green-light);color:var(--green)}
+.btn-plus5{width:52px;background:var(--green-light);color:var(--green);font-size:13px}
+.bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:8px;overflow:hidden}
 .bar{height:5px;border-radius:3px;transition:width 0.3s ease}
 .bar.g{background:var(--green)}.bar.a{background:var(--amber)}.bar.r{background:var(--red)}
-
-/* МОДАЛЬНОЕ ОКНО */
 .modal-overlay{position:fixed;inset:0;background:rgba(42,35,32,0.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
 .modal-overlay.show{opacity:1;pointer-events:all}
 .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-width:420px;transform:translateY(20px);transition:transform 0.2s}
@@ -74,7 +73,6 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .modal-btn.green{background:var(--green-light);color:var(--green)}
 .modal-btn.red{background:#FAE0DC;color:var(--red)}
 .modal-btn.gray{background:var(--surface2);color:var(--text2)}
-
 .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:#F5F0E8;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:700;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(42,35,32,0.25);z-index:999}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -111,23 +109,14 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
   <div id="dishList"></div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО НОВОГО ДНЯ -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-title">☀️ Новый день</div>
     <div class="modal-sub">Что делаем с меню?</div>
-    <button class="modal-btn green" onclick="newDayKeep()">
-      🔄 Оставить меню и порции как есть
-    </button>
-    <button class="modal-btn red" onclick="newDayReset()">
-      ⬜ Оставить меню — обнулить порции
-    </button>
-    <button class="modal-btn red" onclick="newDayClear()">
-      🗑 Очистить всё — начать с нуля
-    </button>
-    <button class="modal-btn gray" onclick="hideModal()">
-      Отмена
-    </button>
+    <button class="modal-btn green" onclick="newDayKeep()">🔄 Оставить меню и порции как есть</button>
+    <button class="modal-btn red" onclick="newDayReset()">⬜ Оставить меню — обнулить порции</button>
+    <button class="modal-btn red" onclick="newDayClear()">🗑 Очистить всё — начать с нуля</button>
+    <button class="modal-btn gray" onclick="hideModal()">Отмена</button>
   </div>
 </div>
 
@@ -160,8 +149,9 @@ function spend(i,n){
   if(dishes[i].left===0)showToast(dishes[i].name+' — закончилось 🚫');
   save();render();
 }
-function restore(i){
-  dishes[i].left=Math.min(dishes[i].total,dishes[i].left+1);
+function restore(i,n){
+  dishes[i].left+=n;
+  dishes[i].total=Math.max(dishes[i].total,dishes[i].left);
   save();render();
 }
 function removeDish(i){
@@ -169,30 +159,12 @@ function removeDish(i){
   dishes.splice(i,1);save();render();
   showToast(name+' удалено');
 }
-
-// НОВЫЙ ДЕНЬ
-function showNewDayModal(){
-  document.getElementById('modalOverlay').classList.add('show');
-}
-function hideModal(){
-  document.getElementById('modalOverlay').classList.remove('show');
-}
-function closeModal(e){
-  if(e.target===document.getElementById('modalOverlay'))hideModal();
-}
-function newDayKeep(){
-  save();render();hideModal();
-  showToast('Меню и порции сохранены ☀️');
-}
-function newDayReset(){
-  dishes=dishes.map(d=>({...d,left:0}));
-  save();render();hideModal();
-  showToast('Порции обнулены ☀️');
-}
-function newDayClear(){
-  dishes=[];save();render();hideModal();
-  showToast('Новый день — чистый лист ☀️');
-}
+function showNewDayModal(){document.getElementById('modalOverlay').classList.add('show')}
+function hideModal(){document.getElementById('modalOverlay').classList.remove('show')}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))hideModal()}
+function newDayKeep(){save();render();hideModal();showToast('Меню и порции сохранены ☀️')}
+function newDayReset(){dishes=dishes.map(d=>({...d,left:0}));save();render();hideModal();showToast('Порции обнулены ☀️')}
+function newDayClear(){dishes=[];save();render();hideModal();showToast('Новый день — чистый лист ☀️')}
 
 function render(){
   const el=document.getElementById('dishList');
@@ -205,8 +177,8 @@ function render(){
     const bc=pct>60?'g':pct>25?'a':'r';
     const ns=d.left===0?'color:var(--text2);text-decoration:line-through':'';
     const numColor=d.left===0?'color:var(--text2)':bc==='r'?'color:var(--amber)':'';
-    const m2=d.left>=2?`<button class="spend-btn btn-minus2" onclick="spend(${i},2)">−2</button>`:'';
-    const disabledMinus=d.left===0?'disabled style="opacity:0.4"':'';
+    const disM1=d.left===0?'disabled style="opacity:0.4"':'';
+    const disM2=d.left<2?'disabled style="opacity:0.4"':'';
     return `<div class="dish-card">
       <div class="dish-top">
         <span class="dish-name" style="${ns}">${d.name}</span>
@@ -220,9 +192,10 @@ function render(){
           <span class="p-word">порц.</span>
         </div>
         <div class="btns">
-          <button class="spend-btn btn-plus" onclick="restore(${i})">+1</button>
-          ${m2}
-          <button class="spend-btn btn-minus1" onclick="spend(${i},1)" ${disabledMinus}>−1</button>
+          <button class="spend-btn btn-plus5" onclick="restore(${i},5)">+5</button>
+          <button class="spend-btn btn-plus1" onclick="restore(${i},1)">+1</button>
+          <button class="spend-btn btn-minus1" onclick="spend(${i},1)" ${disM1}>−1</button>
+          <button class="spend-btn btn-minus2" onclick="spend(${i},2)" ${disM2}>−2</button>
         </div>
       </div>
       <div class="bar-wrap"><div class="bar ${bc}" style="width:${pct}%"></div></div>
